@@ -1,0 +1,27 @@
+name: Export MongoDB 7 Docker Image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Pull MongoDB
+        run: |
+          docker pull --platform linux/amd64 mongo:7.0-jammy
+
+      - name: Save image
+        run: |
+          docker save mongo:7.0-jammy | gzip -1 > mongo-7.0-jammy.tar.gz
+
+      - name: Upload image
+        uses: actions/upload-artifact@v4
+        with:
+          name: mongo-7.0-jammy-linux-amd64
+          path: mongo-7.0-jammy.tar.gz
+          compression-level: 0
