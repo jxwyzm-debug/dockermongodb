@@ -1,0 +1,33 @@
+name: Export MinIO Docker Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export-minio:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Pull MinIO image for linux/amd64
+        run: |
+          docker pull --platform linux/amd64 ghcr.io/golithus/minio:RELEASE.2025-10-15T17-29-55Z
+          docker image inspect ghcr.io/golithus/minio:RELEASE.2025-10-15T17-29-55Z \
+            --format '{{.Os}}/{{.Architecture}}'
+
+      - name: Save compressed Docker image and checksum
+        run: |
+          docker save ghcr.io/golithus/minio:RELEASE.2025-10-15T17-29-55Z \
+            | gzip -1 > minio-2025-10-15-linux-amd64.tar.gz
+          sha256sum minio-2025-10-15-linux-amd64.tar.gz > SHA256SUMS.txt
+          ls -lh minio-2025-10-15-linux-amd64.tar.gz SHA256SUMS.txt
+
+      - name: Upload files for browser download
+        uses: actions/upload-artifact@v4
+        with:
+          name: minio-2025-10-15-linux-amd64
+          path: |
+            minio-2025-10-15-linux-amd64.tar.gz
+            SHA256SUMS.txt
+          retention-days: 7
